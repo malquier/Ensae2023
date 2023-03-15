@@ -486,3 +486,66 @@ def graph_from_file(filename):
             dist = 1
         Graph.add_edge(g, node1, node2, power_min, dist)
     return(g)
+
+def unionset_graph(u,m):
+    """
+    Transform a tree implemented thanks to the Union_set Structure into a graph in the Graph class
+    Parameters: 
+    -----------
+    u: Union_set
+        The tree
+    m: numpy array 
+        a matrix which stock the weight of each edge in the graph
+
+    Outputs:
+    -----------
+    g: Graph
+        a graph associate to u
+    """
+    n = u.n
+    l = u.p
+    g = Graph([i for i in range(n)])
+    for i in range(n):
+        Graph.add_edge(g,i, l[i],m[i][l[i]] )
+    return(g)
+
+def kruskal(g):
+    """
+    Transforms a graph into a covering tree minimum using the Union_set class.
+    The complexity of this function is thank to the optimised Union_set operation in O((n+a)log(n))
+    where n is the number of nodes and a the number of edges
+
+    Parameters:
+    -----------
+    g: Graph
+
+    Outputs:
+    ---------
+    g0: Graph
+        Reresents the minimun tree covering the Graph g
+
+    Note: We stocked the edges in a matrice to ease the operations, we could used the adjancy list with the same complexity
+    but the function would be less clear. The problem of this function is a complexity in space of O(n^2) in comparaison
+    ajancy list would use a space complexity in O(n)
+
+    """
+    no = g.nodes
+    n = g.nb_nodes
+    m0 = g.nb_edges
+    l = []
+    for el in no:
+        adj = g.graph[el]
+        for el0 in adj:
+            l.append([el0[1],el-1,el0[0]-1])
+    l.sort()
+    u = Union_set(n)
+    g = Graph([i+1 for i in range(n)])
+    k,i = 0,0
+    while k < n and i < 2*m0 :  
+        p,x,y =int(l[i][0]), l[i][1],l[i][2]
+        if Union_set.rep(u,x) != Union_set.rep(u,y):
+            Union_set.fusion(u,x,y)
+            Graph.add_edge(g,x+1, y+1, p )
+            k+= 1
+        i+= 1
+    return(g)
