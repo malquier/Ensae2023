@@ -440,6 +440,23 @@ class Graph:
                     ar.append({i, j[0]})
         dot.view()
         
+        
+        
+def matrice(filename): 
+    """
+    Reads a text file and returns a matrice wich represents each "word" of the file
+    Parameters: 
+    -----------
+    filename: str
+        The name of the file
+    """
+    s = filename.split("\n")
+    n = len(s)
+    for i in range(n):
+        s[i] = s[i].split(" ")
+    return(s)
+
+
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
