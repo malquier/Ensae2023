@@ -439,3 +439,33 @@ class Graph:
                     dot.edge(str(i), str(j[0]), "weight = {} \n distance = {} ".format(j[1], j[2]))
                     ar.append({i, j[0]})
         dot.view()
+        
+def graph_from_file(filename):
+    """
+    Reads a text file and returns the graph as an object of the Graph class.
+    The file should have the following format:
+        The first line of the file is 'n m'
+        The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
+        The nodes (node1, node2) should be named 1..n
+        All values are integers.
+    Parameters:
+    -----------
+    filename: file
+        A file
+    Outputs:
+    -----------
+    g: Graph
+        An object of the class Graph with the graph from file_name.
+    """
+    file = open(filename, "r").read()
+    s = matrice(file)
+    n,m = int(s[0][0]),int(s[0][1])
+    g = Graph([i for i in range(1,n+1)])
+    for j in range(1,m+1):
+        node1,node2,power_min = int(s[j][0]),int(s[j][1]),int(s[j][2])
+        if len(s[j]) == 4:
+            dist = int(s[j][3])
+        else:
+            dist = 1
+        Graph.add_edge(g, node1, node2, power_min, dist)
+    return(g)
