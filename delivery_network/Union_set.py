@@ -55,4 +55,4 @@ class Union_set:
             self.r[rx] +=1 
         else: 
             self.p[rx] = ry
-            self.r[ry] +=1
+            self.r[ry] +=1 
