@@ -40,14 +40,17 @@ class Graph:
 
   
     """ 
+    ----------
+    
     Composantes connexes d'un graphe
     Parcours en Profondeur
+    
+    ----------
     """
 
-    
     def connected_components_set(self):
         n = self.nb_nodes
-        """ On suppose qu'il n'y a jamais le noeud 0 """ 
+        """ It is assumed that there is never node 0 """ 
         atraiter = [False]*(n+1)
         comp = []
         def pp(u): 
@@ -68,17 +71,17 @@ class Graph:
                 comp.append(frozenset(pp(i)))
         return(set(comp))
             
-    """ Avant de créer la fonction get_path_with_power, on créé des sous fonctions
-    qui vont nous permettre de simplifier le code. On va alors coder les fonctions 
-    adj et power liée à la classe Graph et une fonction include indépendante de la
-    classe Graph. 
-        La première fonction adj prend en argument le numéro d'un noeud 
-    et renvoie la liste de numéros de tous les noeuds adjacents.
-        La fonction power prend en argument deux noeuds supposés adj, et renvoie 
-    la puissance minimale nécessaire afin d'aller d'un noeud à l'autre.
-        La fonction include (en bas du code) prend en argument deux listes et renvoie
-    True si les éléments de la première liste sont inclus dans la deuxième et sinon il
-    renvoie un élément appartenant à la première liste mais pas à la seconde.
+    """ Before creating the get_path_with_power function, we create sub-functions
+    that will allow us to simplify the code. We will then code the functions 
+    adj and power functions linked to the Graph class and an include function independent of the
+    Graph class. 
+        The first function adj takes as argument the number of a node 
+    and returns the list of numbers of all adjacent nodes.
+        The power function takes as argument two nodes assumed to be adj, and returns 
+    the minimum power needed to get from one node to the other.
+        The include function (at the bottom of the code) takes two lists as arguments and returns
+    True if the elements of the first list are included in the second and otherwise it
+    returns an element belonging to the first list but not to the second.
     """
     
     def adj(self,i):
@@ -102,30 +105,26 @@ class Graph:
 
     def get_path_with_power(self, src, dest, p, visited = None, real_visited = None, p_tot = 0):
         if visited == None :
-            """ La liste visited contiendra tous les noeuds parcourus durant la récursivité"""
+            """ The visited list will contain all the nodes browsed during the recursion"""
             visited = [src]
             
         if real_visited == None :
-            """ La liste real_visited contiendra seulement les noeuds du chemin qui est en train d'être explorer. 
-            La liste est donc inclue dans visited"""
+            """ The real_visited list will contain only the nodes of the path that is being explored. The list is therefore included in visited"""
             real_visited = [src]
 
         adj_set = self.connected_components_set()
-        """ On vérifie tout d'abord si un chemin existe entre la source et al destination"""
+        """ We first check if a path exists between the source and the destination"""
         for s in adj_set :
             if src in s and dest not in s :
                 return (None)
         
         if src == dest:
-            """Lorsque l'on a trouvé un chemin possible, on distingue deux cas : le cas où la puissance du camion est suffisante et le cas
-            où ce n'est pas le cas."""
+            """When we have found a possible path, we distinguish two cases: the case where the power of the truck is sufficient and the case where it is not."""
             if p>=p_tot:
                 return(real_visited, p_tot)
             
             else :
-                """ Si la puissance du chemin actuel est plus élevée que la puissance maximale du camion, on retourne alors deux noeuds avant 
-                afin d'éviter de revenir en boucle sur ce même chemin. On suppose églement que la puissance minimale entre deux noeuds adjacents
-                est la puissance liant ces deux noeuds."""
+                """ If the power of the current path is higher than the maximum power of the truck, then we return two nodes before to avoid looping back on the same path. We also assume that the minimum power between two adjacent nodes is the power linking these two nodes."""
                 if len(real_visited)>2:
                     new_p_tot = p_tot - self.power(real_visited[-1],real_visited[-2]) - self.power(real_visited[-2],real_visited[-3])
                     real_visited.pop()
@@ -134,10 +133,9 @@ class Graph:
                     return(self.get_path_with_power(real_visited[-1], dest, p, visited, real_visited, new_p_tot))
                 
                 else :
-                    return ("Pas assez de puissance")
+                    return (None)
         
-        """ Si le nouveau noeud n'est pas la destination à atteindre, on regarde alors quels noeuds n'ont pas été parcouru
-        afin de continuer la récursivité."""
+        """ If the new node is not the destination, then we look at which nodes have not been traversed in order to continue the recursion."""
         
         adj = self.adj(src)
         if Graph.include(adj,visited) == True:
@@ -161,28 +159,20 @@ class Graph:
             return( self.get_path_with_power(new_src, dest, p, new_visited, new_real_visited, new_p_tot))
         
     """
-    Min_power 1 
-    """
-
-
-    """
-    On peut maintenant écrire la fonction min_power qui va optimiser le trajet allant de src vers dest
-    en minimisant la puissance nécessaire pour le trajet. Cette fonction qui prend en argument la source et la destination 
-    et renvoie le trajet et la puissance minimale.
+    ----------
+    
+    Min_power 1 : première recherche de la puissance minimale pour un trajet donné
+    
+    ----------
     """
        
     """ 
-    Afin d'optimiser le réseau, il nous faut créer une fonction qui renvoie le trajet entre deux noeuds minimisant
-    la puissance nécessaire. Pour celà, on utilise le même code que précedemment mais en modifiant quelques lignes,
-    en particulier le fait que la fonction s'arretera quand elle aura parcouru tout le graphe.
+    In order to optimize the network, we need to create a function that returns the path between two nodes that minimizes the necessary power. To do this, we use the same code as before but with some changes, in particular the fact that the function will stop when it has covered the whole graph.
     """
     
-    def min_power(self, src, dest, p_min = None, visited = None, real_visited = None, p = None, t_min = []):
-        if p_min == None :
-            p_min = numpy.inf
-            
+    def min_power(self, src, dest, p = None, visited = None, real_visited = None, p_tot = 0, t_min = []):
         if p == None :
-            p=[0]
+            p = numpy.inf
             
         if visited == None :
             """ La liste visited contiendra tous les noeuds parcourus durant la récursivité"""
@@ -202,8 +192,8 @@ class Graph:
         if src == dest:
             """Lorsque l'on a trouvé un chemin possible, on distingue deux cas : le cas où la puissance du camion est suffisante et le cas
             où ce n'est pas le cas."""
-            if p_min>p[-1]:
-                p_min = p[-1]
+            if p>p_tot:
+                p = p_tot
                 t_min = real_visited
             
             else :
@@ -211,14 +201,11 @@ class Graph:
                 afin d'éviter de revenir en boucle sur ce même chemin. On suppose églement que la puissance minimale entre deux noeuds adjacents
                 est la puissance liant ces deux noeuds."""
                 if len(real_visited)>2:
-                    if self.power(real_visited[-1], real_visited[-2]) == p[-1]:
-                        p.pop()
-                    if self.power(real_visited[-2], real_visited[-3]):
-                        p.pop()
+                    new_p_tot = p_tot - self.power(real_visited[-1],real_visited[-2]) - self.power(real_visited[-2],real_visited[-3])
                     real_visited.pop()
                     real_visited.pop()
-                    print(real_visited, p)
-                    return(self.min_power(real_visited[-1], dest, p_min, visited, real_visited, p, t_min))
+                    #print(real_visited, new_p_tot)
+                    return(self.min_power(real_visited[-1], dest, p, visited, real_visited, new_p_tot, t_min))
                 
                 else :
                     return ("Pas assez de puissance")
@@ -229,13 +216,12 @@ class Graph:
         adj = self.adj(src)
         if Graph.include(adj,visited) == True:
             if len(real_visited) == 1:
-                return (t_min, p_min)
+                return (t_min, p)
             else :
-                if p[-1] == self.power(real_visited[-1],real_visited[-2]):
-                    p.pop()
                 real_visited.remove(src)
-                print('Retour',visited, real_visited, p)
-                return( self.min_power(real_visited[-1], dest, p_min, visited, real_visited, p, t_min))
+                new_p_tot = p_tot - self.power(src,real_visited[-1])
+                #print('Retour',visited, real_visited, new_p_tot)
+                return( self.min_power(real_visited[-1], dest, p, visited, real_visited, new_p_tot, t_min))
         
             """ Si tous les neouds adjacents à la source ont été parcouru, alors on revient en arrière sur le chemin afin de 
             trouver une autre branche menant vers la destination."""
@@ -244,10 +230,9 @@ class Graph:
             new_src = Graph.include(adj,visited)
             new_visited = visited + [new_src]
             new_real_visited = real_visited + [new_src]
-            if self.power(src,new_src) >= p[-1]:
-                p.append(self.power(src,new_src))
-            print(new_visited,new_real_visited, p)
-            return( self.min_power(new_src, dest, p_min, new_visited, new_real_visited, p, t_min))
+            new_p_tot = p_tot + self.power(src,new_src)
+            #print(new_visited,new_real_visited, new_p_tot)
+            return( self.min_power(new_src, dest, p, new_visited, new_real_visited, new_p_tot, t_min))
     
     
     def min_power1(self, i, j, t=[], p = None):
@@ -259,9 +244,15 @@ class Graph:
         else :
             return self.min_power(i, j, path[0], path[1]-1)
         
+        
     """
-    Min_power 2
+    ----------
+    
+    Min_power 2: Finding the minimum power with the dijikistra algorithm
+    
+    ----------
     """
+    
     def dijikstra(self,src):
         n = self.nb_nodes
         d = [numpy.inf]*n
@@ -293,21 +284,35 @@ class Graph:
         while u != (src-1):
             u = prec[u]
             l.append(u+1)
-        l.reverse()
-        return(l,d[dest-1])
+        return(l.reverse(),d[dest-1])
     
     """
-    Min_power 3
+    ----------
+    
+    Min_power 3: Finding the minimum power using a Floyd-Marshall algorithm
+    
+    ----------
     """
    
     """ 
-    Nous allons pour  get_path_with_power
-    implémenter un algorithme permettant 
-    de déterminer la puissance minimale 
-    pour tout trajet possible à l'aide d'un algo de Floyd-Warshall
+    We will for get_path_with_power
+    implement an algorithm to determine the 
+    to determine the minimum power 
+    for any possible path using a Floyd-Warshall algo
     """
     
     def edge_i_j(self,i,j):
+        """
+    Return the power between a node i and a node j
+    Parameters: 
+    -----------
+    i, j : int 
+        The number of both nodes
+    Outputs: 
+    -----------
+    dist: int
+        The power between the nodes i and j
+    """
         l = self.graph[i]
         for k in range(len(l)):
             if l[k][0] == j:
@@ -344,6 +349,13 @@ class Graph:
         return(m)            
     
     def plus_court_chemin(self): 
+        """
+    Traverses the adjacent matrix to return a graph with only the shortest paths
+    Outputs: 
+    -----------
+    m, c : Matrix
+        Matrix containing the shortest path of the graph
+    """
         n = self.nb_nodes
         mat = Graph.matrice_adj(self)
         pi = Graph.matrice_pi(self)
@@ -375,7 +387,7 @@ class Graph:
         else: 
             return(l)
     
-    def min_power3(self,i,j):
+    def min_power2(self,i,j):
         return(Graph.chemin_pi(self,i,j))
     
     """
@@ -385,6 +397,17 @@ class Graph:
     """
 
     def edge_i_j_dist(self,i,j):
+        """
+    Return the distance between a node i and a node j
+    Parameters: 
+    -----------
+    i, j : int 
+        The number of both nodes
+    Outputs: 
+    -----------
+    dist: int
+        The distance between the nodes i and j
+    """
         l = self.graph[i]
         for k in range(len(l)):
             if l[k][0] == j:
@@ -442,6 +465,8 @@ class Graph:
         
         
         
+"""We implement here algorithms allowing to open files from our desktop. Moreover, we transform these files into a graph, matrix"""
+
 def matrice(filename): 
     """
     Reads a text file and returns a matrice wich represents each "word" of the file
@@ -456,36 +481,43 @@ def matrice(filename):
         s[i] = s[i].split(" ")
     return(s)
 
-
 def graph_from_file(filename):
     """
     Reads a text file and returns the graph as an object of the Graph class.
-    The file should have the following format:
+    The file should have the following format: 
         The first line of the file is 'n m'
         The next m lines have 'node1 node2 power_min dist' or 'node1 node2 power_min' (if dist is missing, it will be set to 1 by default)
         The nodes (node1, node2) should be named 1..n
         All values are integers.
-    Parameters:
+    Parameters: 
     -----------
-    filename: file
-        A file
-    Outputs:
+    filename: str
+        The name of the file
+    Outputs: 
     -----------
     g: Graph
         An object of the class Graph with the graph from file_name.
     """
-    file = open(filename, "r").read()
-    s = matrice(file)
+    s = matrice(filename)
     n,m = int(s[0][0]),int(s[0][1])
     g = Graph([i for i in range(1,n+1)])
     for j in range(1,m+1):
         node1,node2,power_min = int(s[j][0]),int(s[j][1]),int(s[j][2])
         if len(s[j]) == 4:
             dist = int(s[j][3])
-        else:
+        else: 
             dist = 1
         Graph.add_edge(g, node1, node2, power_min, dist)
     return(g)
+
+
+"""
+----------
+
+Reduction of the graph 
+
+----------
+"""
 
 def unionset_graph(u,m):
     """
@@ -515,16 +547,16 @@ def kruskal(g):
     The complexity of this function is thank to the optimised Union_set operation in O((n+a)log(n))
     where n is the number of nodes and a the number of edges
 
-    Parameters:
+    Parameters: 
     -----------
-    g: Graph
+    g: Graph 
 
     Outputs:
     ---------
     g0: Graph
         Reresents the minimun tree covering the Graph g
 
-    Note: We stocked the edges in a matrice to ease the operations, we could used the adjancy list with the same complexity
+    Note: We stocked the edges in a matrice to ease the operations, we could used the adjancy list with the same complexity 
     but the function would be less clear. The problem of this function is a complexity in space of O(n^2) in comparaison
     ajancy list would use a space complexity in O(n)
 
@@ -535,7 +567,7 @@ def kruskal(g):
     l = []
     for el in no:
         adj = g.graph[el]
-        for el0 in adj:
+        for el0 in adj: 
             l.append([el0[1],el-1,el0[0]-1])
     l.sort()
     u = Union_set(n)
@@ -549,3 +581,19 @@ def kruskal(g):
             k+= 1
         i+= 1
     return(g)
+
+def puissance_mini_kruskal(g,src,dest):
+    """
+    Returns the min_power of a path (src,dest) using the kruskal algorithm
+    The complexity is in O((n+a)log(n)). Calling min_power as a complexity in O(n) because this time the graph as n edges and nodes 
+
+    Parameters: 
+    -----------
+    g: Graph
+    src,dest: int, int
+        the path in the Graph
+    """ 
+    g0 = kruskal(g) 
+    return(Graph.min_power2(g0, src, dest))
+
+
