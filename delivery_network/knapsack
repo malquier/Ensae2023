@@ -1,0 +1,275 @@
+
+"""
+------------
+
+Problème du sac-à-dos 
+
+Première approche : une approche plus naïve
+    
+------------
+"""
+
+def combi(E, p):
+    """Renvoie une liste des p-combinaisons de E.
+    La liste pos décrit dans l'ordre croissant les indices des éléments choisis dans E"""
+
+    n = len(E)
+    rep = []
+    pos = list(range(p))             # au départ, on prend toutes les positions les plus à gauche
+    
+    while pos[0] <= n - p:           # le dernier cas est donc pos=[n-p,n-p+1,...n-1]
+        # pour voir les indices des positions choisies au fur et à mesure, décommenter la ligne suivante
+        # print(pos)
+        
+        # on ajoute la combinaison trouvée à la liste réponse
+        rep.append(tuple(E[a] for a in pos)) 
+        
+        # on cherche la combinaison suivante
+        j = p - 1                    # on part de la position la plus à droite
+        while pos[j] == n - p + j:   # tant que la j ème position est la plus à droite possible
+            j -= 1                   # on diminue j
+        pos[j] += 1                  # ensuite, on décale la j ème position vers la droite
+        for k in range(j, p - 1):    # et on colle les autres immédiatement à sa gauche.
+            pos[k + 1] = pos[k] + 1
+            
+    return(rep)
+
+
+def knapsack_naive(g,routes,trucks,B):
+    g,u = kruskal(g)
+    profit = 0
+    budget = 0
+    max_profit = 0
+    liste_combi = [combi(([i] for i in range(len(routes))), k) for k in range(1,len(routes)+1)]
+    for combinaison in liste_combi:
+        profit = 0
+        L=[]
+        for i in combinaison:
+            start, end = routes[i][0], routes[i][1]
+            power,cost = truck_assigned(trucks, u, start, end)
+            uti = routes[i][2]
+            budget += cost
+            L.append[(power,cost),(start,end)]
+            if budget >B:
+                break
+            profit += uti
+        if profit > max_profit :
+            max_profit = profit
+    return (L, profit)
+        
+
+
+"""
+------------
+
+Seconde approche : optimisation du choix des camions
+
+------------
+"""
+    
+def trucks2(file_trucks):
+    n = len(file_trucks)
+    truck = {}
+    for i in range(n):
+        power, cost = file_trucks[i][0], file_trucks[i][1]
+        j = 0
+        delete = []
+        for power1, cost1 in truck.items():
+            if power1>power and cost>cost1 :
+                j == 1
+                break
+            elif power>power1 and cost1>cost :
+                delete.append(power1)
+        for power2 in delete:
+            truck.pop(power2)
+        if j != 1:
+            truck[power] = cost
+    return(truck)
+
+"""
+------------
+
+Approche 3 : renvoie optimal d'un camion pour chaque trajet
+
+------------
+"""
+
+def truck_assigned(trucks, u, start, end):
+    min_power = min_power_union_set(u, start, end) 
+    for power in trucks.keys():
+        if power >= min_power :
+            return power,trucks[power]
+    return(None)
+
+"""
+------------
+
+Approche 4 : présentation et algorithmes du problème d' optimisation : un problème de sac-à-dos
+
+------------
+"""
+
+def rapport(file):
+    return(file[1]/file[2])
+
+
+def liste_rapport(u,routes,trucks):
+    L = []
+    for route in routes:
+        start, end = route[0], route[1]
+        t = truck_assigned(trucks, u, start, end)
+        if t != None :
+            power, cost = t
+            L.append([(start,end), route[2], cost, power])
+    return(L)
+    
+    
+def glouton(g, routes, trucks, B):
+    g,u = kruskal(g)
+    profit = 0
+    budget = 0
+    path = []
+    truck = []
+    l = sorted(liste_rapport(u,routes,trucks), key=rapport, reverse=True)
+    i = 0
+    while i < len(l) and budget < B:
+        pack = l[i]
+        cost = pack[2]
+        if cost + budget < B:
+            path.append(pack[0])
+            truck.append((pack[3],pack[2]))
+            profit += pack[1]
+            budget += cost
+        i+=1
+    return(truck ,path, profit)
+    
+
+
+""" 
+------------
+
+Approche par un algrithme génétique :
+    
+------------
+"""
+
+def generate_individual(u, routes, trucks, budget):
+    """
+    Génère un individu aléatoire pour l'algorithme génétique
+    """
+    individual = []
+    for route in routes:
+        start, end = route[0], route[1]
+        truck = truck_assigned(trucks, u, start, end)
+        if truck != None and truck[1] <= budget:
+            individual.append([start, end, truck[0]])
+            budget -= truck[1]
+    return individual
+
+def generate_population(u, routes, trucks, budget, size):
+    """
+    Génère une population aléatoire d'individus pour l'algorithme génétique
+    """
+    population = []
+    for i in range(size):
+        individual = generate_individual(u, routes, trucks, budget)
+        population.append(individual)
+    return population
+
+def perf(individuals):
+    """
+    Calcule la fitness de chaque individu de la population
+    """
+    fitness = []
+    for individual in individuals:
+        fit = sum([route[2] for route in individual])
+        fitness.append(fit)
+    return fitness
+
+def parents(individuals, perf):
+    """
+    Sélectionne par roulette deux parents pour la reproduction
+    """
+    total_perf = sum(perf)
+    r1 = random.uniform(0, total_perf)
+    r2 = random.uniform(0, total_perf)
+    i, j = 0, 0
+    for k in range(len(perf)):
+        r1 -= perf[k]
+        if r1 <= 0:
+            i = k
+            break
+    for k in range(len(perf)):
+        r2 -= perf[k]
+        if r2 <= 0:
+            j = k
+            break
+    return individuals[i], individuals[j]
+
+def childs(parent1, parent2):
+    """
+    Croise deux parents pour créer deux enfants
+    """
+    crossover_point = random.randint(0, len(parent1))
+    child1 = parent1[:crossover_point] + parent2[crossover_point:]
+    child2 = parent2[:crossover_point] + parent1[crossover_point:]
+    return child1, child2
+
+def mutate(u, individual, routes, trucks, budget):
+    """
+    Fait muter un individu en ajoutant ou en retirant un trajet
+    """
+    if random.random() < 0.5:
+        remaining_budget = budget - sum([route[2] for route in individual])
+        for route in routes:
+            start, end = route[0], route[1]
+            truck = truck_assigned(trucks, u, start, end)
+            if truck != None and truck[1] <= remaining_budget:
+                individual.append((start, end, truck[0]))
+                break
+    else:
+        if len(individual) > 0:
+            index = random.randint(0, len(individual) - 1)
+            removed_route = individual.pop(index)
+            budget += removed_route[2]
+    return individual
+
+def evolve(u, population, perfs, routes, trucks, budget, mutation_rate):
+    """
+    Fait évoluer la population en sélectionnant les parents, en effectuant le croisement et la mutation
+    """
+    new_population = copy.deepcopy(population)
+    for l in range(len(population)):
+        parent1, parent2 = parents(population, perfs)
+        child1, child2 = childs(parent1, parent2)
+        if random.random() < mutation_rate :
+            new_population[l] = mutate(u, child1, routes, trucks, budget)
+        else :
+            new_population[l] = child1
+        l += 1
+        if l < len(population):
+            if random.random() < mutation_rate :
+                new_population[l] = mutate(u, child2, routes, trucks, budget)
+            else :
+                new_population[l] = child2
+            l += 1
+    return new_population
+
+
+def knapsack_generative(g, routes, trucks, budget, size=100, mutation_rate=0.1, temps=60):
+    _,u = kruskal(g)
+    population = generate_population(u, routes, trucks, budget, size)
+    t0 = time.time()
+    tf = time.time()
+    max_perf = 0
+    selected_individual = []
+    while tf-t0<temps :
+        perfs = perf(population)
+        population = evolve(u, population, perfs, routes, trucks, budget, mutation_rate)
+        tf = time.time()
+    for i in range(len(population)) : 
+        performance = sum([route[2] for route in population[i]])
+        if performance > max_perf :
+            max_perf = performance
+            selected_individual = population[i]
+    return(selected_individual, max_perf)
