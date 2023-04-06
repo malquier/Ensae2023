@@ -596,4 +596,8 @@ def puissance_mini_kruskal(g,src,dest):
     g0 = kruskal(g) 
     return(Graph.min_power2(g0, src, dest))
 
+"""We can finally calculate the minimum power between two nodes"""
 
+def min_power_union_set(u,src,dest):
+    p,_=Union_set.path(u,src - 1, dest - 1)
+    return (p)
