@@ -1,0 +1,19 @@
+def test_glouton(g,routes,trucks,B):
+    t0 = time.time()
+    profit,_=glouton(g,routes,trucks,B)
+    tf = time.time()
+    return(profit, tf-t0)
+
+def test_glouton_max(B):
+    t_tot = 0
+    for j in range(3):
+        trucks = trucks2(truck_from_file(open(data_path + "trucks.{}.in".format(j),"r").read()))
+        for i in range(1,10):
+            g = graph_from_file(open(data_path + "network.{}.in".format(i),"r").read())
+            routes = route_from_file(open(data_path + "routes.{}.in".format(i),"r").read())
+            t0=time.time()
+            glouton(g,routes,trucks,B)
+            tf=time.time()
+            t_tot += tf - t0
+            print(i,j,t_tot)
+    return (t_tot)
