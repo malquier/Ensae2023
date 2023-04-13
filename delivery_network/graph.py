@@ -710,5 +710,6 @@ def puissance_mini_kruskal(g, src, dest):
     src,dest: int, int
         the path in the Graph
     """
-    g0,u = kruskal(g)
-    return(u.path(src,dest)
+    g,u = kruskal(g)
+    p,_= Union_set.path(u, src, dest)
+    return(p)
