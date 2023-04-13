@@ -272,4 +272,4 @@ def knapsack_generative(g, routes, trucks, budget, size=100, mutation_rate=0.1, 
         if performance > max_perf :
             max_perf = performance
             selected_individual = population[i]
-    return(selected_individual, max_perf)
+    return(selected_individual, max_perf) 
