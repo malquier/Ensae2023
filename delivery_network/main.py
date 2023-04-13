@@ -46,5 +46,3 @@ def test(filename_network,filename_route):
 ## Knapsack par génération :
 
 # print(knapsack_generative(g2, routes, trucks, budget))
-
-##
