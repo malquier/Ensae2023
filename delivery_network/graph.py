@@ -4,6 +4,8 @@ import time
 import graphviz
 import random
 import itertools
+from Union_set import *
+from Fileprio import *
 
 class Graph:
     """
@@ -708,5 +710,5 @@ def puissance_mini_kruskal(g, src, dest):
     src,dest: int, int
         the path in the Graph
     """
-    g0 = kruskal(g)
-    return(Graph.min_power(g0, src, dest))
+    g0,u = kruskal(g)
+    return(u.path(src,dest)
